@@ -1,0 +1,6 @@
+@IpGeo_HostAddress = http://localhost:5145
+
+GET {{IpGeo_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
