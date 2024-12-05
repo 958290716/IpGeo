@@ -6,7 +6,7 @@ namespace IpGeo.IpLookup.Data
 {
     public class MongoIpInformationRepository(MongoDbConnector connector) : IIpInformationRepository
     {
-        private IMongoCollection<IpInformation> IpInformation => connector.IpLocationCollection;
+        public IMongoCollection<IpInformation> IpInformation => connector.IpLocationCollection;
 
         public async Task CreateAsync(IpInformation ipInformation)
         {
