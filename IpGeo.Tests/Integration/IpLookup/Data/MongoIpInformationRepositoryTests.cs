@@ -1,29 +1,42 @@
 ﻿using IpGeo.IpLookup.Data;
+using IpGeo.Tests.Integration.Utils;
+using IpGeo.Tests.Integration.Utils.Resources;
 
 namespace IpGeo.Tests.Integration.IpLookup.Data
 {
-    public class MongoIpInformationRepositoryTests
+    [Collection(nameof(TestResourceManagerFixture))]
+    public class MongoIpInformationRepositoryTests(TestResourceManagerFixture manager)
+        : SimpleTestSetup<MongoIpInformationRepository>
     {
-        /// <summary>
-        /// System under test
-        /// </summary>
-        MongoIpInformationRepository Repository => throw new NotImplementedException();
+        protected override async Task<MongoIpInformationRepository> GetSutAsync()
+        {
+            // Get the mongodb test container.
+            var mongodb = await manager.GetResource<MongoDbContainerResource>();
+
+            // Setup your repository here.
+            var connectionString = mongodb.ConnectionString;
+
+            throw new NotImplementedException();
+        }
 
         [Fact]
         public async Task CreateIp_ShouldSuccess()
         {
-            await Repository.CreateAsync(null!);
+            /// Sut is your repository configured in <see cref="GetSutAsync"/>.
+            await Sut.CreateAsync(null!);
             throw new NotImplementedException();
         }
 
-        [Theory]
-        [InlineData(0)]
-        public Task LookupIp_WhenValidIp_ShouldReturnIpInformation(uint ip) =>
+        [Fact]
+        public Task LookupIp_WhenValidIp_ShouldReturnIpInformation()
+        {
             throw new NotImplementedException();
+        }
 
-        [Theory]
-        [InlineData(0)]
-        public Task LookupIp_WhenNoRecord_ShouldReturnNull(uint ip) =>
+        [Fact]
+        public Task LookupIp_WhenNoRecord_ShouldReturnNull()
+        {
             throw new NotImplementedException();
+        }
     }
 }
