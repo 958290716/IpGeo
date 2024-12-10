@@ -1,17 +1,26 @@
 ﻿using IpGeo.IpLookup.Models;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace IpGeo.IpLookup.Data
 {
-    public class MongoIpInformationRepository : IIpInformationRepository
+    public class MongoIpInformationRepository(IpLookupMongoDbContext ipLookupMongoDbContext)
+        : IIpInformationRepository
     {
-        public Task CreateAsync(IpInformation ipInformation)
+        public IMongoCollection<IpInformation> IpInformation =>
+            ipLookupMongoDbContext.IpLocationCollection;
+
+        public async Task CreateAsync(IpInformation ipInformation)
         {
-            throw new NotImplementedException();
+            await IpInformation.InsertOneAsync(ipInformation);
         }
 
-        public Task<IpInformation?> GetByIpAsync(uint ip)
+        public async Task<IpInformation?> GetByIpAsync(uint ip)
         {
-            throw new NotImplementedException();
+            return await IpInformation
+                .AsQueryable()
+                .Where(x => x.IpStart <= ip && x.IpEnd >= ip)
+                .FirstOrDefaultAsync();
         }
     }
 }
