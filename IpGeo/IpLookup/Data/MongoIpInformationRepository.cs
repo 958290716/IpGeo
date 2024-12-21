@@ -4,6 +4,7 @@ using MongoDB.Driver.Linq;
 
 namespace IpGeo.IpLookup.Data
 {
+    // DataService
     public class MongoIpInformationRepository(IpLookupMongoDbContext ipLookupMongoDbContext)
         : IIpInformationRepository
     {
@@ -21,6 +22,19 @@ namespace IpGeo.IpLookup.Data
                 .AsQueryable()
                 .Where(x => x.IpStart <= ip && x.IpEnd >= ip)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> DeleteByIpAsync(int ip)
+        {
+            var result = await IpInformation.DeleteOneAsync(x => x.IpStart == ip);
+            if (result.DeletedCount == 1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }
