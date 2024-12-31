@@ -5,12 +5,15 @@ using IpGeo.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
+using System.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-
+builder.Services.AddScoped<IIpInformationRepository, MongoIpInformationRepository>();
+builder.Services.AddScoped<IpLookupMongoDbContext>();
+builder.Services.Configure<IpLookupMongoDbContextSettings>(builder.Configuration.GetSection("IpLookupMongoDbContextSettings"));
 //builder.Services.Configure<IpLookupMongoDbContextSettings>(
 //    builder.Configuration.GetSection("IpLookupMongoDbContextSettings")
 //);
@@ -21,6 +24,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

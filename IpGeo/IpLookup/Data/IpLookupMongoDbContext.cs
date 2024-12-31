@@ -1,5 +1,6 @@
 ﻿using IpGeo.IpLookup.Data;
 using IpGeo.IpLookup.Models;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace IpGeo.IpLookup.Data
@@ -9,8 +10,9 @@ namespace IpGeo.IpLookup.Data
         private readonly IMongoDatabase _database;
         public IMongoCollection<IpInformation> IpLocationCollection { get; }
 
-        public IpLookupMongoDbContext(IpLookupMongoDbContextSettings ipLookupMongoDbContextSettings)
+        public IpLookupMongoDbContext(IOptions<IpLookupMongoDbContextSettings> options)
         {
+            IpLookupMongoDbContextSettings ipLookupMongoDbContextSettings = options.Value;
             var client = new MongoClient(ipLookupMongoDbContextSettings.ConnectString);
             _database = client.GetDatabase(ipLookupMongoDbContextSettings.DatabaseName);
             IpLocationCollection = _database.GetCollection<IpInformation>(

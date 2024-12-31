@@ -2,9 +2,10 @@
 
 namespace IpGeo.IpLookup.Data
 {
-    public record IpLookupMongoDbContextSettings(
-        string ConnectString,
-        string DatabaseName,
-        string CollectionName
-    ) { }
+    public class IpLookupMongoDbContextSettings
+    {
+        public string ConnectString { get; init; } = null!;
+        public string DatabaseName { get; init; } = null!;
+        public string CollectionName { get; init; } = null!;
+    }
 }

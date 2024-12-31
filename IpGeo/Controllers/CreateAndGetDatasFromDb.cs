@@ -1,4 +1,5 @@
 ﻿using IpGeo.Api;
+using IpGeo.Dto;
 using IpGeo.IpLookup.Data;
 using IpGeo.IpLookup.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +9,12 @@ namespace IpGeo.Controllers
 {
     [ApiController]
     [Route("api/GetAndSetDataIntoDatabase")]
-    public class CreateAndGetDatasFromDb(MongoIpInformationRepository mongoIpInformationRepository)
+    public class CreateAndGetDataFromDb(IIpInformationRepository mongoIpInformationRepository)
         : ControllerBase
     {
-        private readonly MongoIpInformationRepository _mongoIpInformationRepository =
+        private readonly IIpInformationRepository _mongoIpInformationRepository =
             mongoIpInformationRepository;
+
 
         [HttpGet("{ip}")]
         public ActionResult<List<IpInformation>> GetDataByIp(uint ip)
@@ -21,18 +23,27 @@ namespace IpGeo.Controllers
             if (ipInfo == null)
             {
                 return NotFound("Data not found");
-            }
+            }           
             return Ok(ipInfo);
         }
 
         [HttpPost]
-        public ActionResult<IpInformation> AddIpInfo([FromBody] IpInformation ipInformation)
+        public ActionResult<IpInformation> AddIpInfo([FromBody] PostIpInfoRequest postIpInfoRequest)
         {
-            var newIpInfo = _mongoIpInformationRepository.CreateAsync(ipInformation);
+            var ipInfo = new IpInformation() { 
+                CityName = postIpInfoRequest.CityName,
+                CountryName = postIpInfoRequest.CountryName,
+                IpEnd = postIpInfoRequest.IpEnd,
+                IpStart = postIpInfoRequest.IpStart,
+                RegionName = postIpInfoRequest.RegionName,
+            };
+
+
+            var newIpInfo = _mongoIpInformationRepository.CreateAsync(ipInfo);
             return CreatedAtAction(
                 nameof(GetDataByIp),
-                new { ip = ipInformation.IpStart },
-                ipInformation
+                new { ip = postIpInfoRequest.IpStart },
+                postIpInfoRequest
             );
         }
     }
