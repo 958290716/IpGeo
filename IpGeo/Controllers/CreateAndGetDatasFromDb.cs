@@ -15,29 +15,29 @@ namespace IpGeo.Controllers
         private readonly IIpInformationRepository _mongoIpInformationRepository =
             mongoIpInformationRepository;
 
-
         [HttpGet("{ip}")]
-        public ActionResult<List<IpInformation>> GetDataByIp(uint ip)
+        public ActionResult<List<IpInformation>> GetDataByIp(int ip)
         {
-            var ipInfo = _mongoIpInformationRepository.GetByIpAsync(ip);
+            uint ip1 = (uint)ip;
+            var ipInfo = _mongoIpInformationRepository.GetByIpAsync(ip1);
             if (ipInfo == null)
             {
                 return NotFound("Data not found");
-            }           
+            }
             return Ok(ipInfo);
         }
 
         [HttpPost]
         public ActionResult<IpInformation> AddIpInfo([FromBody] PostIpInfoRequest postIpInfoRequest)
         {
-            var ipInfo = new IpInformation() { 
+            var ipInfo = new IpInformation()
+            {
                 CityName = postIpInfoRequest.CityName,
                 CountryName = postIpInfoRequest.CountryName,
                 IpEnd = postIpInfoRequest.IpEnd,
                 IpStart = postIpInfoRequest.IpStart,
                 RegionName = postIpInfoRequest.RegionName,
             };
-
 
             var newIpInfo = _mongoIpInformationRepository.CreateAsync(ipInfo);
             return CreatedAtAction(

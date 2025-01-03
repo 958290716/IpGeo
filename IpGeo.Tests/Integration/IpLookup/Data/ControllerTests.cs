@@ -18,20 +18,6 @@ namespace IpGeo.Tests.Integration.IpLookup.Data
     {
         private readonly WebApplicationFactory<Program> _factory = factory;
 
-        //protected override async Task<MongoIpInformationRepository> GetSutAsync()
-        //{
-        //    // Get the mongodb test container.
-        //    var mongodb = await manager.GetResource<MongoDbContainerResource>();
-
-        //    // Setup your repository here.
-        //    //IpLookupMongoDbContextSettings ipLookupMongoDbContextSettings = new();
-        //    var ipLookupMongoDbContextSettings = new IpLookupMongoDbContextSettings();
-
-        //    IpLookupMongoDbContext ipLookupMongoDbContext = new(Options.Create(ipLookupMongoDbContextSettings));
-        //    MongoIpInformationRepository mongoIpInformationRepository = new(ipLookupMongoDbContext);
-        //    return mongoIpInformationRepository;
-        //}
-
         protected override async Task<MongoIpInformationRepository> GetSutAsync()
         {
             // Get the mongodb test container.
@@ -56,7 +42,7 @@ namespace IpGeo.Tests.Integration.IpLookup.Data
         [Fact]
         public async Task CreateUser_returnsCreatedStatusCode()
         {
-            var ipInfo = SeedIpInformation(ipStart: 12345, ipEnd: 34567);
+            var ipInfo = SeedPostIpInfoRequest(ipStart: 12345, ipEnd: 34567);
             var jsonContent = new StringContent(
                 System.Text.Json.JsonSerializer.Serialize(ipInfo),
                 Encoding.UTF8,
@@ -64,13 +50,32 @@ namespace IpGeo.Tests.Integration.IpLookup.Data
             );
             var client = _factory.CreateClient();
             var response = await client.PostAsync("/api/GetAndSetDataIntoDatabase/", jsonContent);
-            Debug.WriteLine(await response.Content.ReadAsStringAsync());
+            //Debug.WriteLine(await response.Content.ReadAsStringAsync());
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             Assert.Contains("12345", content);
         }
 
-        public static PostIpInfoRequest SeedIpInformation(
+        [Fact]
+        public async Task GetIpInfo_returnOKStatus()
+        {
+            var ipInfo = SeedPostIpInfoRequest(ipStart: 23456, ipEnd: 45678);
+            var jsonContent = new StringContent(
+                System.Text.Json.JsonSerializer.Serialize(ipInfo),
+                Encoding.UTF8,
+                "application/json"
+            );
+            var client = _factory.CreateClient();
+            var response = await client.PostAsync("/api/GetAndSetDataIntoDatabase/", jsonContent);
+            response.EnsureSuccessStatusCode();
+            var getIpInfo = await client.GetAsync("/api/GetAndSetDataIntoDatabase/23456"); //+"23456"
+            Debug.WriteLine(await getIpInfo.Content.ReadAsStringAsync());
+            getIpInfo.EnsureSuccessStatusCode();
+            var content = await getIpInfo.Content.ReadAsStringAsync();
+            Assert.Contains("23456", content);
+        }
+
+        public static PostIpInfoRequest SeedPostIpInfoRequest(
             uint ipStart = 0,
             uint ipEnd = 1,
             string? regionName = null,
