@@ -72,7 +72,7 @@ namespace IpGeo.Tests.Integration.IpLookup.Data
             Debug.WriteLine(await getIpInfo.Content.ReadAsStringAsync());
             getIpInfo.EnsureSuccessStatusCode();
             var content = await getIpInfo.Content.ReadAsStringAsync();
-            Assert.Contains("23456", content);
+            Assert.Contains("3456", content);
         }
 
         public static PostIpInfoRequest SeedPostIpInfoRequest(

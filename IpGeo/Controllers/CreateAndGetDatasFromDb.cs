@@ -16,10 +16,10 @@ namespace IpGeo.Controllers
             mongoIpInformationRepository;
 
         [HttpGet("{ip}")]
-        public ActionResult<List<IpInformation>> GetDataByIp(int ip)
+        public async Task<ActionResult<List<IpInformation>>> GetDataByIp(int ip)
         {
             uint ip1 = (uint)ip;
-            var ipInfo = _mongoIpInformationRepository.GetByIpAsync(ip1);
+            var ipInfo = await _mongoIpInformationRepository.GetByIpAsync(ip1);
             if (ipInfo == null)
             {
                 return NotFound("Data not found");

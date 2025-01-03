@@ -12,6 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddControllers().AddNewtonsoftJson();
+
+builder.Services.AddMvc(options =>
+{
+    options.SuppressAsyncSuffixInActionNames = false;
+});
 builder.Services.AddScoped<IIpInformationRepository, MongoIpInformationRepository>();
 builder.Services.AddScoped<IpLookupMongoDbContext>();
 builder.Services.Configure<IpLookupMongoDbContextSettings>(
