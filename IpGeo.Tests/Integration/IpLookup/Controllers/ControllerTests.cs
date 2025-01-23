@@ -6,9 +6,10 @@ using IpGeo.IpLookup.Models;
 using IpGeo.Tests.Integration.Utils;
 using IpGeo.Tests.Integration.Utils.Resources;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace IpGeo.Tests.Integration.IpLookup.Data
+namespace IpGeo.Tests.Integration.IpLookup.Controllers
 {
     [Collection(nameof(TestResourceManagerFixture))]
     public class ControllerTests(
@@ -42,42 +43,21 @@ namespace IpGeo.Tests.Integration.IpLookup.Data
         [Fact]
         public async Task CreateUser_returnsCreatedStatusCode()
         {
-            var ipInfo = SeedPostIpInfoRequest(ipStart: 12345, ipEnd: 34567);
-            var jsonContent = new StringContent(
-                System.Text.Json.JsonSerializer.Serialize(ipInfo),
-                Encoding.UTF8,
-                "application/json"
-            );
+            var ipInfo = IpInfoSetUp(ipStart: 123, ipEnd: 345);
+            await using var scope = _factory.Services.CreateAsyncScope();
+            var repository = scope.ServiceProvider.GetRequiredService<IIpInformationRepository>();
+            await repository.CreateAsync(ipInfo);
             var client = _factory.CreateClient();
-            var response = await client.PostAsync("/api/GetAndSetDataIntoDatabase/", jsonContent);
-            //Debug.WriteLine(await response.Content.ReadAsStringAsync());
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            Assert.Contains("12345", content);
-        }
-
-        [Fact]
-        public async Task GetIpInfo_returnOKStatus()
-        {
-            var ipInfo = SeedPostIpInfoRequest(ipStart: 23456, ipEnd: 45678);
-            var jsonContent = new StringContent(
-                System.Text.Json.JsonSerializer.Serialize(ipInfo),
-                Encoding.UTF8,
-                "application/json"
-            );
-            var client = _factory.CreateClient();
-            var response = await client.PostAsync("/api/GetAndSetDataIntoDatabase/", jsonContent);
-            response.EnsureSuccessStatusCode();
-            var getIpInfo = await client.GetAsync("/api/GetAndSetDataIntoDatabase/23456"); //+"23456"
+            var getIpInfo = await client.GetAsync("/api/IpGeoController/123"); //+"23456"
             Debug.WriteLine(await getIpInfo.Content.ReadAsStringAsync());
             getIpInfo.EnsureSuccessStatusCode();
             var content = await getIpInfo.Content.ReadAsStringAsync();
-            Assert.Contains("3456", content);
+            Assert.Contains("123", content);
         }
 
-        public static PostIpInfoRequest SeedPostIpInfoRequest(
-            uint ipStart = 0,
-            uint ipEnd = 1,
+        private static PostIpInfoRequest SeedPostIpInfoRequest(
+            string ipStart = "0",
+            string ipEnd = "12",
             string? regionName = null,
             string? countryName = null,
             string? cityName = null
@@ -90,6 +70,24 @@ namespace IpGeo.Tests.Integration.IpLookup.Data
                 RegionName = regionName ?? Guid.NewGuid().ToString(),
                 CityName = cityName ?? Guid.NewGuid().ToString(),
                 CountryName = countryName ?? Guid.NewGuid().ToString(),
+            };
+        }
+
+        private static IpInformation IpInfoSetUp(
+            uint ipStart = 12,
+            uint ipEnd = 34,
+            string? regionName = null,
+            string? countryName = null,
+            string? cityName = null
+        )
+        {
+            return new IpInformation
+            {
+                RegionName = regionName ?? Guid.NewGuid().ToString(),
+                CityName = cityName ?? Guid.NewGuid().ToString(),
+                CountryName = countryName ?? Guid.NewGuid().ToString(),
+                IpStart = ipStart,
+                IpEnd = ipEnd,
             };
         }
     }

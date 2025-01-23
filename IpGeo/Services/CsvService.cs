@@ -4,47 +4,21 @@ using System.Net;
 using CsvHelper;
 using IpGeo.IpLookup.Data;
 using IpGeo.IpLookup.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace IpGeo.Services
 {
-    public class CsvService(IpLookupMongoDbContext ipLookupMongoDbContext) : ICsvService
+    public class CsvService(
+        IIpInformationRepository mongoIpInformationRepository,
+        HttpClient client
+    ) : ICsvService
     {
-        private readonly IMongoCollection<IpInformation> _ipInformation =
-            ipLookupMongoDbContext.IpLocationCollection;
+        private readonly IIpInformationRepository _mongoIpInformationRepository =
+            mongoIpInformationRepository;
+        private readonly HttpClient _httpClient = client;
 
-        public async Task DownloadAndSaveCsvDataAsync(string csvUrl)
-        {
-            using var client = new HttpClient();
-            var response = await client.GetAsync(csvUrl);
-            response.EnsureSuccessStatusCode();
-
-            var gzContent = await response.Content.ReadAsStreamAsync();
-            using var gzipStream = new GZipStream(gzContent, CompressionMode.Decompress);
-            using var reader = new StreamReader(gzipStream);
-            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
-            var records = csv.GetRecords<CsvData>();
-            int i = 0;
-            foreach (var record in records)
-            {
-                if (i > 100)
-                    break;
-                var decimalIpStart = IpToDecimal(record.IpStart);
-                var decimalIpEnd = IpToDecimal(record.IpEnd);
-                var ipInfo = new IpInformation
-                {
-                    IpStart = decimalIpStart,
-                    IpEnd = decimalIpEnd,
-                    CityName = record.CityName,
-                    RegionName = record.RegionName,
-                    CountryName = record.CountryName,
-                };
-                await _ipInformation.InsertOneAsync(ipInfo);
-                i++;
-            }
-        }
-
-        public uint IpToDecimal(string ip)
+        private static uint IpToDecimal(string ip)
         {
             // 使用 IPAddress.Parse 将 IP 地址解析为一个 IPAddress 对象
             var ipAddress = IPAddress.Parse(ip);
@@ -60,6 +34,41 @@ namespace IpGeo.Services
             }
 
             return decimalValue;
+        }
+
+        public async Task DownloadAndSaveCsvDataAsync(string csvUrl)
+        {
+            var response = await _httpClient.GetAsync(csvUrl);
+            response.EnsureSuccessStatusCode();
+            var gzContent = await response.Content.ReadAsStreamAsync();
+            using var gZipStream = new GZipStream(gzContent, CompressionMode.Decompress);
+            using var reader = new StreamReader(gZipStream);
+            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+            var records = csv.GetRecords<CsvData>();
+            //var record = records.FirstOrDefault() ?? throw new Exception("record is null");
+            var ConvertData = ReadCsvAndConvert(records);
+            await _mongoIpInformationRepository.CreateManyAsync(ConvertData);
+        }
+
+        static List<IpInformation> ReadCsvAndConvert(IEnumerable<CsvData> records)
+        {
+            var documents = new List<IpInformation>();
+            foreach (var record in records)
+            {
+                var intIpStart = IpToDecimal(record.IpStart);
+                var intIpEnd = IpToDecimal(record.IpEnd);
+                var doc = new IpInformation
+                {
+                    IpStart = intIpStart,
+                    IpEnd = intIpEnd,
+                    RegionName = record.RegionName,
+                    CityName = record.CityName,
+                    CountryName = record.CountryName,
+                };
+                documents.Add(doc);
+            }
+
+            return documents;
         }
     }
 }

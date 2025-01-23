@@ -16,6 +16,11 @@ namespace IpGeo.IpLookup.Data
             await IpInformation.InsertOneAsync(ipInformation);
         }
 
+        public async Task CreateManyAsync(List<IpInformation> ipInformation)
+        {
+            await IpInformation.InsertManyAsync(ipInformation);
+        }
+
         public async Task<IpInformation?> GetByIpAsync(uint ip)
         {
             return await IpInformation
@@ -24,12 +29,12 @@ namespace IpGeo.IpLookup.Data
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<bool> DeleteByIpAsync(int ip)
+        public async Task<bool> DeleteByIpAsync(uint startIp)
         {
-            var result = await IpInformation.DeleteOneAsync(x => x.IpStart == ip);
+            var result = await IpInformation.DeleteOneAsync(x => x.IpStart == startIp);
             if (result.DeletedCount == 1)
             {
-                return true;
+                return result.DeletedCount > 0;
             }
             else
             {

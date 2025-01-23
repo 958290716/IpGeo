@@ -12,7 +12,7 @@ namespace IpGeo.Controllers
         [HttpPost("import")]
         public IActionResult ImportCsvData([FromBody] string csvUrl)
         {
-            Task.Run(() => _csvService.DownloadAndSaveCsvDataAsync(csvUrl));
+            Task.Run(() => _csvService.DownloadAndSaveCsvDataAsync(csvUrl, "1", "2"));
             return Accepted();
         }
     }
